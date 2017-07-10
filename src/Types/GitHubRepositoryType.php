@@ -59,6 +59,21 @@ class GitHubRepositoryType extends BaseType implements TypeInterface
                 'README.md',
                 TypeTab::TYPE_TEMPLATE
             )
+            ->defineTab(
+                'commits',
+                'Commits',
+                TypeTab::TYPE_TEMPLATE
+            )
+            ->defineTab(
+                'pulls',
+                'Pull requests',
+                TypeTab::TYPE_TEMPLATE
+            )
+            ->defineTab(
+                'issues',
+                'Issues',
+                TypeTab::TYPE_TEMPLATE
+            )
         ;
     }
 
@@ -106,5 +121,11 @@ class GitHubRepositoryType extends BaseType implements TypeInterface
     public function tabReadme(Entry $entry)
     {
         return $this->index->render('types/github-repository/readme.html.twig', ['entry' => $entry]);
+    }
+
+    public function tabPulls(Entry $entry)
+    {
+        $entries = $this->index->getStore()->getEntriesOfTypeByProperty('github-pull-request', 'parent_repository', $entry->getFqen());
+        return $this->index->render('@Index/entries/index.html.twig', ['entries' => $entries]);
     }
 }

@@ -36,6 +36,31 @@ class PdoStore
         return $entries;
     }
 
+    public function getEntriesOfTypeByProperty($typeName, $propertyName, $propertyValue)
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT e.* FROM entry AS e
+            JOIN entry_property AS ep ON ep.entry_id = e.id
+            WHERE type = :type
+            AND ep.name=:name
+            ORDER BY e.id"
+        );
+        $res = $stmt->execute(
+            [
+                'type' => $typeName,
+                'name' => $propertyName
+            ]
+        );
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $entries = [];
+        foreach ($rows as $row) {
+            $entry = $this->row2entry($row);
+            $this->loadEntryProperties($entry, $row['id']);
+            $entries[] = $entry;
+        }
+        return $entries;
+    }
+
     public function getEntriesByFolder($fqen)
     {
         if (!$fqen) {
