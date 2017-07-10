@@ -17,6 +17,11 @@ class Index
         $store->setIndex($this);
     }
 
+    public function setTwig($twig)
+    {
+        $this->twig = $twig;
+    }
+
     public function getStore()
     {
         return $this->store;
@@ -77,9 +82,7 @@ class Index
 
     public function render($filename, $data)
     {
-        $loader = new \Twig_Loader_Filesystem(__DIR__ . '/../templates');
-        $twig = new \Twig_Environment($loader, []);
-        $html = $twig->render($filename, $data);
+        $html = $this->twig->render($filename, $data);
         $response = new Response(
             $html,
             Response::HTTP_OK,
