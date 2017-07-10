@@ -7,6 +7,7 @@ use Index\Model\Entry;
 use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
+use Index\Model\TypeTab;
 use Index\Model\SourceInterface;
 use RuntimeException;
 
@@ -17,9 +18,11 @@ class DoxedoLibraryType extends BaseType implements TypeInterface
     protected $urlPattern = '/^http(s)?:\/\/www.doxedo.com\/(?P<owner>\S+)\/(?P<library>\S+)$/';
     protected $defaultSourceName = 'doxedo';
     protected $identifiers = ['owner', 'library'];
+    protected $index;
 
-    public function __construct()
+    public function __construct($index)
     {
+        $this->index = $index;
         $this
             ->defineProperty(
                 'owner',
@@ -35,6 +38,16 @@ class DoxedoLibraryType extends BaseType implements TypeInterface
                 'title',
                 TypeProperty::TYPE_STRING,
                 TypeProperty::FLAG_REMOTE
+            )
+            ->defineTab(
+                'home',
+                'Home',
+                TypeTab::TYPE_TEMPLATE
+            )
+            ->defineTab(
+                'topics',
+                'Topics',
+                TypeTab::TYPE_TEMPLATE
             )
         ;
     }
@@ -65,5 +78,28 @@ class DoxedoLibraryType extends BaseType implements TypeInterface
         */
 
         return $properties;
+    }
+
+
+    public function tabHome(Entry $entry)
+    {
+        $client = $entry->getSource()->getClient();
+        $topic = $client->getTopic(
+            $entry->getPropertyValue('owner') .
+            '/' .
+            $entry->getPropertyValue('library'),
+            'home'
+        );
+        $text = $topic->getVersion()->getContent();
+        $html = $this->index->renderMarkdown($text, $entry);
+        return $this->index->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
+
+        //return $this->index->render('@Index/types/doxedo-library/index.html.twig', ['entry' => $entry]);
+    }
+
+    public function tabTopics(Entry $entry)
+    {
+        $entries = $this->index->getStore()->getEntriesOfTypeByProperty('doxedo-topic', 'parent_library', $entry->getFqen());
+        return $this->index->render('@Index/entries/index.html.twig', ['entries' => $entries]);
     }
 }

@@ -7,6 +7,7 @@ use Index\Model\Entry;
 use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
+use Index\Model\TypeTab;
 use Index\Model\SourceInterface;
 use RuntimeException;
 
@@ -17,9 +18,11 @@ class DoxedoTopicType extends BaseType implements TypeInterface
     protected $urlPattern = '/^http(s)?:\/\/www.doxedo.com\/(?P<owner>\S+)\/(?P<library>\S+)\/topics\/(?P<topic_name>\S+)$/';
     protected $defaultSourceName = 'doxedo';
     protected $identifiers = ['owner', 'library', 'topic_name'];
+    protected $index;
 
-    public function __construct()
+    public function __construct($index)
     {
+        $this->index = $index;
         $this
             ->defineProperty(
                 'owner',
@@ -40,6 +43,16 @@ class DoxedoTopicType extends BaseType implements TypeInterface
                 'title',
                 TypeProperty::TYPE_STRING,
                 TypeProperty::FLAG_REMOTE
+            )
+            ->defineProperty(
+                'parent_library',
+                TypeProperty::TYPE_FQEN,
+                TypeProperty::FLAG_REMOTE
+            )
+            ->defineTab(
+                'view',
+                'View',
+                TypeTab::TYPE_TEMPLATE
             )
         ;
     }
@@ -68,6 +81,25 @@ class DoxedoTopicType extends BaseType implements TypeInterface
             $version->getTitle()
         );
 
+        $properties[] = new EntryProperty(
+            $this->getTypeProperty('parent_library'),
+            'doxedo-library:' . $source->getName() . ':' . $identifiers['owner']->getValue() . ',' . $identifiers['library']->getValue()
+        );
+
         return $properties;
+    }
+
+    public function tabView(Entry $entry)
+    {
+        $client = $entry->getSource()->getClient();
+        $topic = $client->getTopic(
+            $entry->getPropertyValue('owner') .
+            '/' .
+            $entry->getPropertyValue('library'),
+            $entry->getPropertyValue('topic_name')
+        );
+        $text = $topic->getVersion()->getContent();
+        $html = $this->index->renderMarkdown($text, $entry);
+        return $this->index->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
     }
 }
