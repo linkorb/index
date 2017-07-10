@@ -1,0 +1,31 @@
+{
+  "name": "linkorb/index",
+  "description": "Index",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "LinkORB Engineering",
+      "email": "engineering@linkorb.com",
+      "role": "Development"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.9",
+    "dbtk/schema-loader": "~2.1",
+    "symfony/yaml": "~2.7|~3.0",
+    "symfony/dotenv": "~3.0",
+    "guzzlehttp/guzzle": "~6.0",
+    "guzzlehttp/streams": "~3.0",
+    "cdaguerre/php-trello-api": "~0.0",
+    "knplabs/github-api": "~2.0",
+    "php-http/guzzle6-adapter": "~1.0",
+    "google/apiclient": "~2.0",
+    "linkorb/monica-client-php": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "Index\\": "src/"
+    }
+  }
+}

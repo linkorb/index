@@ -1,0 +1,28 @@
+# Parameters
+/app/config/parameters.yml
+/app/config/parameters.yml.bak
+/app/logs
+config.yml
+.env
+
+
+# Managed by Composer
+/vendor/
+/web/bower/
+/web/modules/
+
+# Composer PHAR
+/composer.phar
+
+# Mac
+.DS_Store
+
+/sample.test
+/.settings
+.buildpath
+.project
+.idea
+
+uploads/keys/*
+!uploads/keys/.gitkeep
+autotune.json

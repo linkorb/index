@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema>
+  <table name="entry">
+    <column name="id" type="integer" unsigned="true" autoincrement="true"/>
+    <column name="parent_id" type="integer" notnull="false" />
+
+    <!-- unique identifier -->
+    <column name="type" type="string" length="128" />
+    <column name="source" type="string" length="64" />
+    <column name="name" type="string" length="128" />
+
+    <!-- cache -->
+    <column name="properties" type="text" notnull="false" />
+
+    <column name="display_name" type="string" length="128" notnull="false" />
+
+    <column name="description" type="text" notnull="false" />
+
+    <column name="created_at" type="integer" notnull="false" />
+    <column name="deleted_at" type="integer" notnull="false" />
+
+    <!-- TODO: make type, source, name a unique key & index -->
+    <index name="primary" primary="true" columns="id" />
+  </table>
+
+  <table name="entry_property">
+    <column name="id" type="integer" unsigned="true" autoincrement="true"/>
+    <column name="entry_id" type="integer" />
+    <column name="name" type="string" length="64" />
+    <column name="value" type="text" />
+
+    <index name="primary" primary="true" columns="id" />
+  </table>
+
+  <table name="entry_share">
+    <column name="id" type="integer" unsigned="true" autoincrement="true"/>
+    <column name="entry_id" type="integer" />
+
+    <column name="principal" type="string" lenght="128" />
+
+    <column name="created_at" type="integer" notnull="false" />
+    <column name="deleted_at" type="integer" notnull="false" />
+
+    <column name="actions" type="text" notnull="false" />
+
+    <index name="primary" primary="true" columns="id" />
+  </table>
+</schema>
