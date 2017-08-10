@@ -7,7 +7,7 @@ use Index\Model\EntryProperty;
 use Index\Index;
 use RuntimeException;
 
-class MemoryStore
+class MemoryStore implements StoreInterface
 {
     protected $entries = [];
 

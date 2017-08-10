@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Index;
 use RuntimeException;
 
-class PdoStore
+class PdoStore implements StoreInterface
 {
     protected $pdo;
 
