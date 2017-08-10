@@ -3,6 +3,7 @@
 namespace Index;
 
 use Symfony\Component\HttpFoundation\Response;
+use ReflectionClass;
 use Parsedown;
 
 class Renderer
@@ -16,6 +17,27 @@ class Renderer
         $this->index = $index;
         $this->twig = $twig;
         $this->urlGenerator = $urlGenerator;
+
+        // Auto-register all the provider `templates` directories
+        // in a newly instantiated twig loader
+        $loader = new \Twig_Loader_Filesystem();
+        $twig->getLoader()->addLoader($loader);
+
+        foreach ($index->getProviders() as $provider) {
+            $fqcn = get_class($provider);
+            $part = explode('\\', $fqcn);
+            $providerName = array_pop($part);
+
+            $reflector = new ReflectionClass($fqcn);
+
+            $path = dirname($reflector->getFileName()) . '/templates/';
+            if (file_exists($path)) {
+                $loader->addPath(
+                    $path,
+                    $providerName
+                );
+            }
+        }
     }
 
     public function render($filename, $data)

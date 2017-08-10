@@ -109,6 +109,6 @@ class DoxedoTopicType extends BaseType implements TypeInterface
         );
         $text = $topic->getVersion()->getContent();
         $html = $this->index->getRenderer()->renderMarkdown($text, $entry);
-        return $this->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
+        return $this->render('@DoxedoProvider/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
     }
 }

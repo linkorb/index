@@ -6,6 +6,7 @@ use Index\Model\TypeInterface;
 use Index\Model\Entry;
 use Index\Source\SourceInterface;
 use Index\Store\StoreInterface;
+use Index\Model\ProviderInterface;
 use Index\Searcher\SearcherInterface;
 use RuntimeException;
 
@@ -15,6 +16,7 @@ class Index
     protected $store;
     protected $types = [];
     protected $sources = [];
+    protected $providers = [];
     protected $renderer;
     protected $searcher;
 
@@ -33,6 +35,16 @@ class Index
     public function getSearcher()
     {
         return $this->searcher;
+    }
+
+    public function addProvider(ProviderInterface $provider)
+    {
+        $this->providers[] = $provider;
+    }
+
+    public function getProviders()
+    {
+        return $this->providers;
     }
 
     public function getRenderer()

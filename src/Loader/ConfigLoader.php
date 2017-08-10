@@ -27,13 +27,12 @@ class ConfigLoader
         if (isset($data['providers'])) {
             foreach ($data['providers'] as $providerClassName) {
                 $provider = new $providerClassName($index);
+                $index->addProvider($provider);
                 $typeNames = $provider->getTypes();
                 foreach ($typeNames as $typeClassName) {
                     $type = new $typeClassName($index);
                     $index->addType($type);
                 }
-
-
             }
         }
 
