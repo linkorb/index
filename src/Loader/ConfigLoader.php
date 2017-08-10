@@ -24,6 +24,19 @@ class ConfigLoader
             }
         }
 
+        if (isset($data['providers'])) {
+            foreach ($data['providers'] as $providerClassName) {
+                $provider = new $providerClassName($index);
+                $typeNames = $provider->getTypes();
+                foreach ($typeNames as $typeClassName) {
+                    $type = new $typeClassName($index);
+                    $index->addType($type);
+                }
+
+
+            }
+        }
+
         if (isset($data['types'])) {
             foreach ($data['types'] as $className) {
                 $type = new $className($index);

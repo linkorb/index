@@ -1,7 +1,8 @@
 <?php
 
-namespace Index\Source;
+namespace Index\Provider\Airtable;
 
+use Index\Source\SourceInterface;
 use GuzzleHttp\Client as GuzzleClient;
 
 class AirtableSource implements SourceInterface

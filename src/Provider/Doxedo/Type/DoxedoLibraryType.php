@@ -1,6 +1,6 @@
 <?php
 
-namespace Index\Types;
+namespace Index\Provider\Doxedo\Type;
 
 use Index\Model\TypeInterface;
 use Index\Model\Entry;
@@ -11,14 +11,13 @@ use Index\Model\TypeTab;
 use Index\Source\SourceInterface;
 use RuntimeException;
 
-class DoxedoTopicType extends BaseType implements TypeInterface
+class DoxedoLibraryType extends BaseType implements TypeInterface
 {
-    protected $name = 'doxedo-topic';
-    protected $icon = 'http://wfarm3.dataknet.com/static/resources/icons/set110/3d5197b6.png';
-    protected $urlPattern = '/^http(s)?:\/\/www.doxedo.com\/(?P<owner>\S+)\/(?P<library>\S+)\/topics\/(?P<topic_name>\S+)$/';
+    protected $name = 'doxedo-library';
+    protected $icon = 'https://upr.io/OdX9Lp.jpg';
+    protected $urlPattern = '/^http(s)?:\/\/www.doxedo.com\/(?P<owner>\S+)\/(?P<library>\S+)$/';
     protected $defaultSourceName = 'doxedo';
-    protected $identifiers = ['owner', 'library', 'topic_name'];
-    protected $index;
+    protected $identifiers = ['owner', 'library'];
 
     public function configure()
     {
@@ -34,28 +33,18 @@ class DoxedoTopicType extends BaseType implements TypeInterface
                 TypeProperty::FLAG_IDENTIFIER
             )
             ->defineProperty(
-                'topic_name',
-                TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_IDENTIFIER
-            )
-            ->defineProperty(
                 'title',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_REMOTE|TypeProperty::FLAG_SEARCH
-            )
-            ->defineProperty(
-                'parent_library',
-                TypeProperty::TYPE_FQEN,
                 TypeProperty::FLAG_REMOTE
             )
-            ->defineProperty(
-                'content',
-                TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_SEARCH|TypeProperty::FLAG_HIDDEN
+            ->defineTab(
+                'home',
+                'Home',
+                TypeTab::TYPE_TEMPLATE
             )
             ->defineTab(
-                'view',
-                'View',
+                'topics',
+                'Topics',
                 TypeTab::TYPE_TEMPLATE
             )
         ;
@@ -63,13 +52,13 @@ class DoxedoTopicType extends BaseType implements TypeInterface
 
     public function getDisplayName(Entry $entry)
     {
-        return $entry->getPropertyValue('owner') . '/' . $entry->getPropertyValue('library') . ' ' . $entry->getPropertyValue('title');
+        return $entry->getPropertyValue('owner') . '/' . $entry->getPropertyValue('library');
     }
 
     public function fetchRemoteProperties(SourceInterface $source, $identifiers = [])
     {
         $properties = [];
-
+        /*
         $client = $source->getClient();
         $topic = $client->getTopic(
             $identifiers['owner']->getValue() .
@@ -84,31 +73,31 @@ class DoxedoTopicType extends BaseType implements TypeInterface
             $this->getTypeProperty('title'),
             $version->getTitle()
         );
+        */
 
-        $properties[] = new EntryProperty(
-            $this->getTypeProperty('parent_library'),
-            'doxedo-library:' . $source->getName() . ':' . $identifiers['owner']->getValue() . ',' . $identifiers['library']->getValue()
-        );
-
-        $text = $topic->getVersion()->getContent();
-        $properties[] = new EntryProperty(
-            $this->getTypeProperty('content'),
-            $text
-        );
         return $properties;
     }
 
-    public function tabView(Entry $entry)
+
+    public function tabHome(Entry $entry)
     {
         $client = $entry->getSource()->getClient();
         $topic = $client->getTopic(
             $entry->getPropertyValue('owner') .
             '/' .
             $entry->getPropertyValue('library'),
-            $entry->getPropertyValue('topic_name')
+            'home'
         );
         $text = $topic->getVersion()->getContent();
         $html = $this->index->getRenderer()->renderMarkdown($text, $entry);
         return $this->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
+
+        //return $this->index->render('@Index/types/doxedo-library/index.html.twig', ['entry' => $entry]);
+    }
+
+    public function tabTopics(Entry $entry)
+    {
+        $entries = $this->index->getStore()->getEntriesOfTypeByProperty('doxedo-topic', 'parent_library', $entry->getFqen());
+        return $this->render('@Index/entries/index.html.twig', ['entries' => $entries]);
     }
 }

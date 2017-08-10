@@ -1,6 +1,6 @@
 <?php
 
-namespace Index\Types;
+namespace Index\Provider\Airtable\Type;
 
 use Index\Model\TypeInterface;
 use Index\Model\Entry;

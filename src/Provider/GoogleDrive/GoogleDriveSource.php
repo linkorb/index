@@ -1,7 +1,8 @@
 <?php
 
-namespace Index\Source;
+namespace Index\Provider\GoogleDrive;
 
+use Index\Source\SourceInterface;
 use Google_Service_Drive;
 use Google_Client;
 

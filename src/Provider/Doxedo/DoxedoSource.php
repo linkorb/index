@@ -1,6 +1,8 @@
 <?php
 
-namespace Index\Source;
+namespace Index\Provider\Doxedo;
+
+use Index\Source\SourceInterface;
 
 class DoxedoSource implements SourceInterface
 {

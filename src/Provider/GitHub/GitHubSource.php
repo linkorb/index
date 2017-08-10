@@ -1,6 +1,8 @@
 <?php
 
-namespace Index\Source;
+namespace Index\Provider\GitHub;
+
+use Index\Source\SourceInterface;
 
 class GitHubSource implements SourceInterface
 {

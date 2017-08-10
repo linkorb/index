@@ -1,6 +1,6 @@
 <?php
 
-namespace Index\Types;
+namespace Index\Provider\GitHub\Type;
 
 use Index\Model\TypeInterface;
 use Index\Model\Entry;
