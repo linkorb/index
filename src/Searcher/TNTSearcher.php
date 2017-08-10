@@ -43,9 +43,11 @@ class TNTSearcher implements SearcherInterface
         $res = $this->tnt->search($query, $limit);
 
         $fqens = [];
-        foreach ($res['ids'] as $i=>$fqen) {
-            if ($fqen) {
-                $fqens[] = $fqen;
+        if (isset($res['ids'])) {
+            foreach ($res['ids'] as $i=>$fqen) {
+                if ($fqen) {
+                    $fqens[] = $fqen;
+                }
             }
         }
         return $fqens;
