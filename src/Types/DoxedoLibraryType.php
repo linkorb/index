@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
 use Index\Model\TypeTab;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 class DoxedoLibraryType extends BaseType implements TypeInterface
@@ -18,11 +18,9 @@ class DoxedoLibraryType extends BaseType implements TypeInterface
     protected $urlPattern = '/^http(s)?:\/\/www.doxedo.com\/(?P<owner>\S+)\/(?P<library>\S+)$/';
     protected $defaultSourceName = 'doxedo';
     protected $identifiers = ['owner', 'library'];
-    protected $index;
 
-    public function __construct($index)
+    public function configure()
     {
-        $this->index = $index;
         $this
             ->defineProperty(
                 'owner',
@@ -91,8 +89,8 @@ class DoxedoLibraryType extends BaseType implements TypeInterface
             'home'
         );
         $text = $topic->getVersion()->getContent();
-        $html = $this->index->renderMarkdown($text, $entry);
-        return $this->index->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
+        $html = $this->index->getRenderer()->renderMarkdown($text, $entry);
+        return $this->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
 
         //return $this->index->render('@Index/types/doxedo-library/index.html.twig', ['entry' => $entry]);
     }
@@ -100,6 +98,6 @@ class DoxedoLibraryType extends BaseType implements TypeInterface
     public function tabTopics(Entry $entry)
     {
         $entries = $this->index->getStore()->getEntriesOfTypeByProperty('doxedo-topic', 'parent_library', $entry->getFqen());
-        return $this->index->render('@Index/entries/index.html.twig', ['entries' => $entries]);
+        return $this->render('@Index/entries/index.html.twig', ['entries' => $entries]);
     }
 }

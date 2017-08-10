@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
 use Index\Model\TypeTab;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 class DoxedoTopicType extends BaseType implements TypeInterface
@@ -20,9 +20,8 @@ class DoxedoTopicType extends BaseType implements TypeInterface
     protected $identifiers = ['owner', 'library', 'topic_name'];
     protected $index;
 
-    public function __construct($index)
+    public function configure()
     {
-        $this->index = $index;
         $this
             ->defineProperty(
                 'owner',
@@ -42,12 +41,17 @@ class DoxedoTopicType extends BaseType implements TypeInterface
             ->defineProperty(
                 'title',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_REMOTE
+                TypeProperty::FLAG_REMOTE|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'parent_library',
                 TypeProperty::TYPE_FQEN,
                 TypeProperty::FLAG_REMOTE
+            )
+            ->defineProperty(
+                'content',
+                TypeProperty::TYPE_STRING,
+                TypeProperty::FLAG_SEARCH|TypeProperty::FLAG_HIDDEN
             )
             ->defineTab(
                 'view',
@@ -86,6 +90,11 @@ class DoxedoTopicType extends BaseType implements TypeInterface
             'doxedo-library:' . $source->getName() . ':' . $identifiers['owner']->getValue() . ',' . $identifiers['library']->getValue()
         );
 
+        $text = $topic->getVersion()->getContent();
+        $properties[] = new EntryProperty(
+            $this->getTypeProperty('content'),
+            $text
+        );
         return $properties;
     }
 
@@ -99,7 +108,7 @@ class DoxedoTopicType extends BaseType implements TypeInterface
             $entry->getPropertyValue('topic_name')
         );
         $text = $topic->getVersion()->getContent();
-        $html = $this->index->renderMarkdown($text, $entry);
-        return $this->index->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
+        $html = $this->index->getRenderer()->renderMarkdown($text, $entry);
+        return $this->render('@Index/types/doxedo-topic/view.html.twig', ['entry' => $entry, 'html' => $html]);
     }
 }

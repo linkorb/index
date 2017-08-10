@@ -2,11 +2,22 @@
 
 namespace Index\Model;
 
+use Index\Source\SourceInterface;
+use Index\Index;
+use Doctrine\Common\Inflector\Inflector;
+
 class Entry
 {
+    protected $type;
+    protected $parentFqen;
+    protected $name;
+    protected $source;
+    protected $properties = [];
 
-    public function __construct(TypeInterface $type, SourceInterface $source, $name, $properties = [])
+
+    public function __construct(Index $index, TypeInterface $type, SourceInterface $source, $name, $properties = [])
     {
+        $this->index = $index;
         $this->type = $type;
         $this->source = $source;
         $this->name = $name;
@@ -16,29 +27,15 @@ class Entry
         // Santity check: do entry identifiers match type's identifiers?
     }
 
-    protected $parentId = 0;
-
-    public function setParentId($id)
+    public function setParentFqen($fqen)
     {
-        $this->parentId = $id;
+        $this->parentFqen = $fqen;
     }
 
-    public function getParentId()
+    public function getParentFqen()
     {
-        return $this->parentId;
+        return $this->parentFqen;
     }
-
-    /*
-    protected $id;
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
-    public function getId()
-    {
-        return $this->id;
-    }
-    */
 
     public function getDisplayName()
     {
@@ -56,23 +53,21 @@ class Entry
         return $fqen;
     }
 
-    protected $name;
     public function getName()
     {
         return $this->name;
     }
 
-    protected $type;
+    /*
     public function setType(TypeInterface $type)
     {
         $this->type = $type;
-    }
+    }*/
     public function getType()
     {
         return $this->type;
     }
 
-    protected $source;
     public function setSource(SourceInterface $source)
     {
         $this->source = $source;
@@ -82,9 +77,6 @@ class Entry
     {
         return $this->source;
     }
-
-
-    protected $properties = [];
 
     public function addProperty(EntryProperty $property)
     {
@@ -96,14 +88,50 @@ class Entry
         return $this->properties;
     }
 
+    public function __call($name, $args)
+    {
+        switch (substr($name, 0, 3)) {
+            case 'get':
+                return $this->getPropertyValue(Inflector::tableize(substr($name, 3)));
+                break;
+            case 'set':
+                break;
+            default:
+                throw new MemberAccessException('Method ' . $name . ' does not exists on this entry');
+        }
+
+    }
+
     public function getPropertyValue($name)
     {
         // check if property is single/multiple?
-
-        foreach ($this->properties as $property) {
-            if ($property->getType()->getName()==$name) {
-                return $property->getValue();
+        $pt = $this->getType()->getTypeProperty($name);
+        if (!$pt) {
+            throw new RuntimeException("Entry of type doesn't have property " . $name);
+        }
+        if ($pt->hasFlag(TypeProperty::FLAG_MULTIPLE)) {
+            $res = [];
+            foreach ($this->properties as $property) {
+                if ($property->getType()->getName()==$name) {
+                    $v = $property->getValue();
+                    if ($pt->getType()=='entry') {
+                        $v = $this->index->getStore()->getEntryByFqen($v);
+                    }
+                    $res[] = $v;
+                }
             }
+            return $res;
+        } else {
+            foreach ($this->properties as $property) {
+                if ($property->getType()->getName()==$name) {
+                    $v = $property->getValue();
+                    if ($pt->getType()=='entry') {
+                        $v = $this->index->getStore()->getEntryByFqen($v);
+                    }
+                    return $v;
+                }
+            }
+            return null;
         }
     }
 

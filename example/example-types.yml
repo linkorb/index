@@ -1,0 +1,35 @@
+---
+person:
+  description: A person
+  icon: https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-person-128.png
+
+  properties:
+    ref:
+      type: string
+      required: true
+      identifier: true
+    firstname:
+      type: string
+    lastname:
+      type: string
+    email:
+      type: string
+    colors:
+      type: string
+      multiple: true
+    manager:
+      type: entry
+
+team:
+  description: A team of people
+  icon: https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-person-stalker-128.png
+
+  properties:
+    name:
+      type: string
+      required: true
+      identifier: true
+
+    members:
+      type: entry
+      multiple: true

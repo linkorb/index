@@ -1,0 +1,34 @@
+---
+person:
+  alice:
+    firstname: Alice
+    lastname: Alisson
+    email: alice@example.web
+    colors: ["black", "red", "gray"]
+    manager: person:local:charlie
+
+
+  bob:
+    firstname: Bob
+    lastname: Bobson
+    email: bob@example.web
+    colors: red
+
+  charlie:
+    firstname: Charlie
+    lastname: Charlieson
+    email: charlie@example.web
+    colors: ["red", "green", "blue"]
+
+  dave:
+    firstname: Dave
+    lastname: Davidson
+    email: dave@example.web
+
+
+team:
+  developers:
+    members: ["person:local:alice", "person:local:bob"]
+
+  ops:
+    members: ["person:local:charlie", "person:local:alice"]

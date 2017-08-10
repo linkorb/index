@@ -2,12 +2,31 @@
 
 namespace Index\Model;
 
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 abstract class BaseType implements TypeInterface
 {
     protected $name;
     protected $urlPattern = null;
+
+    protected $index;
+
+    public function __construct($index)
+    {
+        $this->index = $index;
+        $this->configure();
+    }
+
+    protected function configure()
+    {
+        return; // noop
+    }
+
+    public function render($filename, $data = [])
+    {
+        return $this->index->getRenderer()->render($filename, $data);
+    }
 
     public function getName()
     {
@@ -31,7 +50,7 @@ abstract class BaseType implements TypeInterface
     public function getTypeProperty($name)
     {
         if (!isset($this->typeProperties[$name])) {
-            throw new RuntimeException("This type does not have a property `" . $name . "`");
+            throw new RuntimeException("This type (" . $this->name . ") does not have a property `" . $name . "`");
         }
         return $this->typeProperties[$name];
     }

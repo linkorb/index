@@ -38,13 +38,13 @@ if ($typeName) {
     $properties = $type->urlToProperties($url);
     $name = $type->getNameFromProperties($properties);
 
-    $entry = new \Index\Model\Entry($type, $source, $name, $properties);
+    $entry = new \Index\Model\Entry($index, $type, $source, $name, $properties);
+    echo "FQEN: " . $entry->getFqen() . " (NAME: " . $entry->getName() . ")\n";
     $properties = $type->fetchRemoteProperties($source, $properties);
     foreach ($properties as $property) {
         $entry->addProperty($property);
     }
 
-    echo "FQEN: " . $entry->getFqen() . " (NAME: " . $entry->getName() . ")\n";
     foreach ($entry->getProperties() as $property) {
         echo " - " . $property->getType()->getName() . ' = ' . $property->getValue() . " (" . $property->getType()->presentFlags() . ")\n";
     }

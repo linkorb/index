@@ -7,7 +7,7 @@ use Index\Model\Entry;
 use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 class AirtableTableType extends BaseType implements TypeInterface
@@ -18,7 +18,7 @@ class AirtableTableType extends BaseType implements TypeInterface
     protected $defaultSourceName = 'airtable';
     protected $identifiers = ['table_id'];
 
-    public function __construct()
+    public function configure()
     {
         $this
             ->defineProperty(

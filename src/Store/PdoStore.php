@@ -30,7 +30,7 @@ class PdoStore
         $entries = [];
         foreach ($rows as $row) {
             $entry = $this->row2entry($row);
-            $this->loadEntryProperties($entry, $row['id']);
+            $this->loadEntryProperties($entry);
             $entries[] = $entry;
         }
         return $entries;
@@ -40,65 +40,57 @@ class PdoStore
     {
         $stmt = $this->pdo->prepare(
             "SELECT e.* FROM entry AS e
-            JOIN entry_property AS ep ON ep.entry_id = e.id
-            WHERE type = :type
-            AND ep.name=:name
+            JOIN entry_property AS ep ON ep.entry_fqen = e.fqen
+            WHERE ep.name=:name
+            AND ep.value=:value
             ORDER BY e.id"
         );
         $res = $stmt->execute(
             [
-                'type' => $typeName,
-                'name' => $propertyName
+                'name' => $propertyName,
+                'value' => $propertyValue
             ]
         );
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $entries = [];
         foreach ($rows as $row) {
             $entry = $this->row2entry($row);
-            $this->loadEntryProperties($entry, $row['id']);
-            $entries[] = $entry;
+            if ($entry->getType()->getName()==$typeName) {
+                $this->loadEntryProperties($entry);
+                $entries[] = $entry;
+            }
         }
         return $entries;
     }
 
-    public function getEntriesByFolder($fqen)
+    public function getEntriesByParentFqen($fqen)
     {
         if (!$fqen) {
-            $folderId = 0;
+            $stmt = $this->pdo->prepare("SELECT * FROM entry WHERE parent_fqen IS NULL ORDER BY id");
+            $res = $stmt->execute([]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } else {
-            $folderId = $this->getEntryIdByFqen($fqen);
+            $stmt = $this->pdo->prepare("SELECT * FROM entry WHERE parent_fqen = :parent_fqen ORDER BY id");
+            $res = $stmt->execute([
+                'parent_fqen' => $fqen
+            ]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        $stmt = $this->pdo->prepare("SELECT * FROM entry WHERE parent_id = :folder_id ORDER BY id");
-        $res = $stmt->execute([
-            'folder_id' => $folderId
-        ]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $entries = [];
         foreach ($rows as $row) {
             $entry = $this->row2entry($row);
-            $this->loadEntryProperties($entry, $row['id']);
+            $this->loadEntryProperties($entry);
             $entries[] = $entry;
         }
         return $entries;
 
     }
 
-    public function getEntryById($id)
+    private function loadEntryProperties(Entry $entry)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM entry WHERE id=:id");
-        $res = $stmt->execute(['id'=>$id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        $entry = $this->row2entry($row);
-
-        $this->loadEntryProperties($entry, $id);
-
-        return $entry;
-    }
-
-    private function loadEntryProperties(Entry $entry, $id)
-    {
-        $stmt = $this->pdo->prepare("SELECT * FROM entry_property WHERE entry_id=:id");
-        $res = $stmt->execute(['id'=>$id]);
+        $stmt = $this->pdo->prepare("SELECT * FROM entry_property WHERE entry_fqen=:entry_fqen");
+        $res = $stmt->execute(['entry_fqen'=>$entry->getFqen()]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $row) {
             $propertyType = $entry->getType()->getTypeProperty($row['name']);
@@ -111,13 +103,20 @@ class PdoStore
 
     public function getEntryByFqen($fqen)
     {
-        $id = $this->getEntryIdByFqen($fqen);
-        if (!$id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM entry WHERE fqen=:fqen");
+        $res = $stmt->execute(['fqen'=>$fqen]);
+        if ($stmt->rowCount()==0) {
             return null;
         }
-        return $this->getEntryById($id);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $entry = $this->row2entry($row);
+
+        $this->loadEntryProperties($entry);
+
+        return $entry;
     }
 
+    /*
     public function getEntryIdByFqen($fqen)
     {
         $part = explode(':', $fqen);
@@ -130,27 +129,29 @@ class PdoStore
         }
         return $id;
     }
+    */
 
     public function row2entry($row)
     {
-
-        $typeName = $row['type'];
-        $sourceName = $row['source'];
-        $name = $row['name'];
+        $fqen = $row['fqen'];
+        $part = explode(':', $fqen);
+        if (count($part)!=3) {
+            throw new RuntimeException("FQEN doesn't have 3 parts: " . $fqen);
+        }
+        $typeName = $part[0];
+        $sourceName = $part[1];
+        $name = $part[2];
 
         $type = $this->index->getTypeByName($typeName);
         $source = $this->index->getSource($sourceName);
 
         $properties = [];
-        $entry = new Entry($type, $source, $name, $properties);
-        $entry->setParentId($row['parent_id']);
+        $entry = new Entry($this->index, $type, $source, $name, $properties);
+        $entry->setParentFqen($row['parent_fqen']);
         //$entry->setId($row['id']);
         //$entry->setName($row['name']);
 
-        $type = $this->index->getTypeByName($row['type']);
-
-        $entry->setType($type);
-
+        /*
         $json = $row['properties'];
         $properties = json_decode($json, true);
         if ($properties) {
@@ -162,10 +163,13 @@ class PdoStore
                 $entry->addProperty($property);
             }
         }
+        */
         return $entry;
     }
 
-    public function getEntryId($typeName, $sourceName, $entryName)
+
+    /*
+    private function getEntryId($typeName, $sourceName, $entryName)
     {
         $stmt = $this->pdo->prepare("SELECT id FROM entry WHERE type=:type AND source=:source and name=:name");
         $res = $stmt->execute(
@@ -184,17 +188,17 @@ class PdoStore
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)$row['id'];
     }
+    */
+
 
     public function persist(Entry $entry)
     {
-        $id = $this->getEntryId($entry->getType()->getName(), $entry->getSource()->getName(), $entry->getName());
-        if (!$id) {
-            $stmt = $this->pdo->prepare("INSERT INTO entry (type, source, name, created_at) VALUES(:type, :source, :name, :created_at)");
+        $e = $this->getEntryByFqen($entry->getFqen());
+        if (!$e) {
+            $stmt = $this->pdo->prepare("INSERT INTO entry (fqen, created_at) VALUES(:fqen, :created_at)");
             $res = $stmt->execute(
                 [
-                    'type' => $entry->getType()->getName(),
-                    'source' => $entry->getSource()->getName(),
-                    'name' => $entry->getName(),
+                    'fqen' => $entry->getFqen(),
                     'created_at' => time()
                 ]
             );
@@ -203,23 +207,23 @@ class PdoStore
                 throw new RuntimeException("Failed to insert entry");
             }
         }
-        // $id ensured
+        // record ensured
 
         // Update non identifier properties
-        $stmt = $this->pdo->prepare("UPDATE entry SET display_name=:display_name, parent_id=:parent_id WHERE id=:id");
+        $stmt = $this->pdo->prepare("UPDATE entry SET display_name=:display_name, parent_fqen=:parent_fqen WHERE fqen=:fqen");
         $res = $stmt->execute(
             [
                 'display_name' => $entry->getType()->getDisplayName($entry),
-                'parent_id' => (int)$entry->getParentId(),
-                'id' => $id
+                'parent_fqen' => $entry->getParentFqen(),
+                'fqen' => $entry->getFqen()
             ]
         );
 
         // Build property diff
-        $stmt = $this->pdo->prepare("SELECT * FROM entry_property WHERE entry_id=:id");
+        $stmt = $this->pdo->prepare("SELECT * FROM entry_property WHERE entry_fqen=:fqen");
         $res = $stmt->execute(
             [
-                'id' => $id
+                'fqen' => $entry->getFqen()
             ]
         );
 
@@ -233,39 +237,40 @@ class PdoStore
             $entryProperties[$property->getType()->getName()] = $property->getValue();
         }
         $propertyDiffs = $this->diffProperties($entryProperties, $storedProperties);
-        $this->applyPropertyDiffs($id, $propertyDiffs);
+        $this->applyPropertyDiffs($entry, $propertyDiffs);
+        $this->index->updateSearchIndex($entry);
     }
 
-    public function applyPropertyDiffs($id, $diffs)
+    public function applyPropertyDiffs(Entry $entry, $diffs)
     {
         // TODO: track changes in entry_event table
         foreach ($diffs as $diff) {
             switch ($diff['action']) {
                 case 'insert':
-                    $stmt = $this->pdo->prepare("INSERT INTO entry_property (entry_id, name, value) VALUES (:entry_id, :name, :value)");
+                    $stmt = $this->pdo->prepare("INSERT INTO entry_property (entry_fqen, name, value) VALUES (:entry_fqen, :name, :value)");
                     $res = $stmt->execute(
                         [
-                            'entry_id' => $id,
+                            'entry_fqen' => $entry->getFqen(),
                             'name' => $diff['name'],
                             'value' => $diff['value']
                         ]
                     );
                     break;
                 case 'update':
-                    $stmt = $this->pdo->prepare("UPDATE entry_property SET value=:value WHERE entry_id=:entry_id AND name=:name");
+                    $stmt = $this->pdo->prepare("UPDATE entry_property SET value=:value WHERE entry_fqen=:entry_fqen AND name=:name");
                     $res = $stmt->execute(
                         [
-                            'entry_id' => $id,
+                            'entry_fqen' => $entry->getFqen(),
                             'name' => $diff['name'],
                             'value' => $diff['value']
                         ]
                     );
                     break;
                 case 'delete':
-                    $stmt = $this->pdo->prepare("DELETE FROM entry_property WHERE entry_id=:entry_id AND name=:name");
+                    $stmt = $this->pdo->prepare("DELETE FROM entry_property WHERE entry_fqen=:entry_fqen AND name=:name");
                     $res = $stmt->execute(
                         [
-                            'entry_id' => $id,
+                            'entry_fqen' => $entry->getFqen(),
                             'name' => $diff['name']
                         ]
                     );

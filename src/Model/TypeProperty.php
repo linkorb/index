@@ -9,6 +9,8 @@ class TypeProperty implements TypePropertyInterface
     const FLAG_EDITABLE = 4;
     const FLAG_MULTIPLE = 8;
     const FLAG_REQUIRED = 16;
+    const FLAG_SEARCH = 32;
+    const FLAG_HIDDEN = 64;
 
     const TYPE_INTEGER = 1;
     const TYPE_STRING = 2;

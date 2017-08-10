@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
 use Index\Model\TypeTab;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 class GitHubRepositoryType extends BaseType implements TypeInterface
@@ -19,20 +19,20 @@ class GitHubRepositoryType extends BaseType implements TypeInterface
     protected $identifiers = ['owner', 'repository'];
     protected $defaultSourceName = 'github';
     protected $index;
+    protected $renderer;
 
-    public function __construct($index)
+    public function configure()
     {
-        $this->index = $index;
         $this
             ->defineProperty(
                 'owner',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_IDENTIFIER
+                TypeProperty::FLAG_IDENTIFIER|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'repository',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_IDENTIFIER
+                TypeProperty::FLAG_IDENTIFIER|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'private',
@@ -42,7 +42,7 @@ class GitHubRepositoryType extends BaseType implements TypeInterface
             ->defineProperty(
                 'description',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_REMOTE
+                TypeProperty::FLAG_REMOTE|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'website',
@@ -120,12 +120,12 @@ class GitHubRepositoryType extends BaseType implements TypeInterface
 
     public function tabReadme(Entry $entry)
     {
-        return $this->index->render('types/github-repository/readme.html.twig', ['entry' => $entry]);
+        return $this->render('types/github-repository/readme.html.twig', ['entry' => $entry]);
     }
 
     public function tabPulls(Entry $entry)
     {
         $entries = $this->index->getStore()->getEntriesOfTypeByProperty('github-pull-request', 'parent_repository', $entry->getFqen());
-        return $this->index->render('@Index/entries/index.html.twig', ['entries' => $entries]);
+        return $this->render('@Index/entries/index.html.twig', ['entries' => $entries]);
     }
 }

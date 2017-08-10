@@ -2,8 +2,6 @@
 
 namespace Index\Source;
 
-use Index\Model\SourceInterface;
-
 class GitHubSource implements SourceInterface
 {
     protected $name;

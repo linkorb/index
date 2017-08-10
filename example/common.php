@@ -8,15 +8,16 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $dotenv = new Dotenv();
 $dotenv->load(__DIR__.'/../.env');
 
-
-$username = getenv('INDEX_DB_USERNAME');
-$password = getenv('INDEX_DB_PASSWORD');
-$dbname = getenv('INDEX_DB_NAME');
-$host = getenv('INDEX_DB_HOST');
-
-$pdo = new PDO("mysql:dbname="  . $dbname . ";host=" . $host, $username, $password);
-
-$store = new \Index\Store\PdoStore($pdo);
+if (getenv('INDEX_DB_NAME')) {
+    $username = getenv('INDEX_DB_USERNAME');
+    $password = getenv('INDEX_DB_PASSWORD');
+    $dbname = getenv('INDEX_DB_NAME');
+    $host = getenv('INDEX_DB_HOST');
+    $pdo = new PDO("mysql:dbname="  . $dbname . ";host=" . $host, $username, $password);
+    $store = new \Index\Store\PdoStore($pdo);
+} else {
+    $store = new \Index\Store\MemoryStore();
+}
 
 $index = new \Index\Index($store);
 

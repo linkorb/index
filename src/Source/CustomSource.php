@@ -2,8 +2,6 @@
 
 namespace Index\Source;
 
-use Index\Model\SourceInterface;
-
 class CustomSource implements SourceInterface
 {
     protected $name;

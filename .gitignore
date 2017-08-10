@@ -2,6 +2,7 @@
 /app/config/parameters.yml
 /app/config/parameters.yml.bak
 /app/logs
+/var/search
 config.yml
 .env
 

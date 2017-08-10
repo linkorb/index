@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
 use Index\Model\IdTypeProperty;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 class GitHubPullRequestType extends BaseType implements TypeInterface
@@ -19,18 +19,18 @@ class GitHubPullRequestType extends BaseType implements TypeInterface
     protected $identifiers = ['owner', 'repository', 'number'];
     protected $defaultSourceName = 'github';
 
-    public function __construct()
+    public function configure()
     {
         $this
             ->defineProperty(
                 'owner',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_IDENTIFIER
+                TypeProperty::FLAG_IDENTIFIER|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'repository',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_IDENTIFIER
+                TypeProperty::FLAG_IDENTIFIER|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'number',
@@ -50,7 +50,7 @@ class GitHubPullRequestType extends BaseType implements TypeInterface
             ->defineProperty(
                 'title',
                 TypeProperty::TYPE_STRING,
-                TypeProperty::FLAG_REMOTE
+                TypeProperty::FLAG_REMOTE|TypeProperty::FLAG_SEARCH
             )
             ->defineProperty(
                 'user',
@@ -134,11 +134,6 @@ class GitHubPullRequestType extends BaseType implements TypeInterface
             $data['commits']
         );
 
-
-
-
         return $properties;
-
-
     }
 }

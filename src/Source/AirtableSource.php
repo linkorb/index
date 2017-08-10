@@ -2,7 +2,6 @@
 
 namespace Index\Source;
 
-use Index\Model\SourceInterface;
 use GuzzleHttp\Client as GuzzleClient;
 
 class AirtableSource implements SourceInterface

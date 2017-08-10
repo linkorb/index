@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
 use Index\Model\IdTypeProperty;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 class AirtableRecordType extends BaseType implements TypeInterface
@@ -20,7 +20,7 @@ class AirtableRecordType extends BaseType implements TypeInterface
     protected $defaultSourceName = 'airtable';
 
 
-    public function __construct()
+    public function configure()
     {
         $this
             ->defineProperty(
@@ -55,7 +55,7 @@ class AirtableRecordType extends BaseType implements TypeInterface
     {
         $properties = [];
 
-        $client = $source->getClient();
+        //$client = $source->getClient();
         /*
         $prApi = $client->api('pull_request');
 

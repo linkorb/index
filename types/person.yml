@@ -1,14 +1,14 @@
 ---
-name: person
-description: A person entry
-icon: https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/png/512/person.png
+person:
+  description: A person entry
+  icon: https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/png/512/person.png
 
-properties:
-  firstname:
-    type: string
-  lastname:
-    required: true
-    type: string
-  email:
-    type: email
-    multiple: true
+  properties:
+    firstname:
+      type: string
+    lastname:
+      required: true
+      type: string
+    email:
+      type: email
+      multiple: true

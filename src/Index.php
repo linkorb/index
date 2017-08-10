@@ -2,40 +2,76 @@
 
 namespace Index;
 
-use Symfony\Component\HttpFoundation\Response;
 use Index\Model\TypeInterface;
-use Index\Model\SourceInterface;
+use Index\Model\Entry;
+use Index\Model\TypeProperty;
+use Index\Source\SourceInterface;
 use RuntimeException;
-use Parsedown;
-
+use TeamTNT\TNTSearch\TNTSearch;
 
 class Index
 {
     protected $store;
+    protected $tnt;
+    protected $tntIndex;
+    protected $types = [];
+    protected $sources = [];
+    protected $renderer;
+    protected $searcher;
 
     public function __construct($store)
     {
         $this->store = $store;
         $store->setIndex($this);
+
+        $this->tnt = new TNTSearch();
+
+        $this->tnt->loadConfig([
+            'storage'   => '/Users/joostfaassen/git/linkorb/index/var/search/'
+        ]);
+        $this->tnt->selectIndex("entry.index");
+        $this->tnt->fuzziness = true;
+        //$this->tntIndex = $this->tnt->createIndex('entry.index');
     }
 
-    protected $twig;
-    public function setTwig($twig)
+    public function setRenderer(Renderer $renderer)
     {
-        $this->twig = $twig;
+        $this->renderer = $renderer;
     }
-    protected $urlGenerator;
-    public function setUrlGenerator($urlGenerator)
+
+    public function getRenderer()
     {
-        $this->urlGenerator = $urlGenerator;
+        if (!$this->renderer) {
+            throw new RuntimeException("Renderer not defined for this index");
+        }
+        return $this->renderer;
+    }
+
+    public function updateSearchIndex(Entry $entry)
+    {
+        $tntIndex = $this->tnt->getIndex();
+        $document = [
+            'id' => $entry->getFqen(),
+            'display_name' => $entry->getDisplayName()
+        ];
+        foreach ($entry->getProperties() as $p) {
+            if ($p->getType()->hasFlag(TypeProperty::FLAG_SEARCH)) {
+                $document[(string)$p->getType()->getName()] = (string)$p->getValue();
+            }
+        }
+        $tntIndex->update($entry->getFqen(), $document);
+    }
+
+    public function search($query, $limit = 10)
+    {
+        $res = $this->tnt->search($query, $limit);
+        return $res;
     }
 
     public function getStore()
     {
         return $this->store;
     }
-
-    protected $types = [];
 
     public function addType(TypeInterface $type)
     {
@@ -58,6 +94,12 @@ class Index
         return $this->types[$name];
     }
 
+    public function hasType($name)
+    {
+        return isset($this->types[$name]);
+    }
+
+
     public function findTypesByUrl($url)
     {
         $types = [];
@@ -69,7 +111,6 @@ class Index
         return $types;
     }
 
-    protected $sources = [];
     public function addSource(SourceInterface $source)
     {
         $this->sources[$source->getName()] = $source;
@@ -86,93 +127,5 @@ class Index
     public function getSources()
     {
         return $this->sources;
-    }
-
-    public function render($filename, $data)
-    {
-        $html = $this->twig->render($filename, $data);
-        $response = new Response(
-            $html,
-            Response::HTTP_OK,
-            array('content-type' => 'text/html')
-        );
-        return $response;
-    }
-
-
-    public function renderMarkdown($text, $entry)
-    {
-        $parsedown = new Parsedown();
-
-        // preprocess mediawiki style links (convert mediawiki style links into markdown links)
-        preg_match_all('/\[\[(.+?)\]\]/u', $text, $matches);
-        foreach ($matches[1] as $match) {
-            $content = (string)$match;
-            $part = explode('|', $content);
-            $label = $part[0];
-            $link = null;
-            if (count($part)>1) {
-                $label = $part[1];
-                $link = $part[0];
-            }
-            if (!$link) {
-                $link = $label;
-            }
-            $link = trim(strtolower($link));
-            $link = str_replace(' ', '-', $link);
-            $text = str_replace('[[' . $content . ']]', '[' . $label . '](' . $link . ')', $text);
-        }
-
-        $html = $parsedown->text($text);
-
-        // Fix up `language-` prefix for highlight.js
-        $html = str_replace('language-', '', $html);
-
-
-        // Fix hyperlinks
-
-        $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
-        if (preg_match_all("/$regexp/siU", $html, $matches, PREG_SET_ORDER)) {
-            foreach($matches as $match) {
-                //print_r($match);
-                $content = $match[0];
-                $link = $match[2];
-                $label = $match[3];
-
-                // auto add http:// prefix
-                if (substr($link, 0, 4)=='www.') {
-                    $link = 'http://' . $link;
-                }
-                $type = 'internal';
-                if (substr($link, 0, 4)=='http') {
-                    $type = 'external';
-
-                }
-                if ($type == 'internal') {
-
-                    //$topicRepo = $app->getTopicRepository();
-                    $fqen = 'doxedo-topic:' . $entry->getSource()->getName() . ':' . $entry->getPropertyValue('owner') . ',' . $entry->getPropertyValue('library') . ',' . $link;
-                    $id = $this->getStore()->getEntryIdByFqen($fqen);
-                    if ($id==0) {
-                        $type = 'broken';
-                    }
-                    $link = $this->urlGenerator->generate(
-                        'index_entry_view',
-                        array(
-                            'fqen' => $fqen
-                        )
-                    );
-                }
-                $o = '<a href="' . $link . '" class="linktype-' . $type . '"';
-                if ($type=='external') {
-                    $o .= ' target="_blank"';
-                } else {
-                    $o .= ' target="_top"';
-                }
-                $o .= '>' . $label . '</a>';
-                $html = str_replace($content, $o, $html);
-            }
-        }
-        return $html;
     }
 }

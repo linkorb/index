@@ -1,6 +1,6 @@
 <?php
 
-namespace Index\Model;
+namespace Index\Source;
 
 interface SourceInterface
 {

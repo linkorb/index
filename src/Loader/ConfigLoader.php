@@ -35,10 +35,7 @@ class ConfigLoader
         if (isset($data['type_directories'])) {
             foreach ($data['type_directories'] as $path) {
                 $typeLoader = new \Index\Loader\CustomTypeLoader();
-                $types = $typeLoader->loadDirectory($path);
-                foreach ($types as $type) {
-                    $index->addType($type);
-                }
+                $types = $typeLoader->loadDirectory($index, $path);
             }
         }
 

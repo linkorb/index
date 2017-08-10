@@ -8,7 +8,7 @@ use Index\Model\EntryProperty;
 use Index\Model\BaseType;
 use Index\Model\TypeProperty;
 use Index\Model\IdTypeProperty;
-use Index\Model\SourceInterface;
+use Index\Source\SourceInterface;
 use RuntimeException;
 
 abstract class GoogleDriveBaseType extends BaseType implements TypeInterface
@@ -17,7 +17,7 @@ abstract class GoogleDriveBaseType extends BaseType implements TypeInterface
     protected $defaultSourceName = 'google-drive';
 
 
-    public function __construct()
+    public function configure()
     {
         $this
             ->defineProperty(

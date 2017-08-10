@@ -1,5 +1,5 @@
 ---
-name: folder
-description: A folder
-container: true
-icon: https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/png/512/folder.png
+folder:
+  description: A folder
+  container: true
+  icon: https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/png/512/folder.png

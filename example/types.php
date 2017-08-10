@@ -3,5 +3,9 @@
 require_once 'common.php';
 
 $types = $index->getTypes();
-
-print_r($types);
+foreach ($types as $type) {
+    echo $type->getName() . "\n";
+    foreach ($type->getTypeProperties() as $p) {
+        echo '  - ' . $p->getName() . ' = ' . $p->presentFlags() . "\n";
+    }
+}

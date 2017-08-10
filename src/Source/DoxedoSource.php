@@ -2,8 +2,6 @@
 
 namespace Index\Source;
 
-use Index\Model\SourceInterface;
-
 class DoxedoSource implements SourceInterface
 {
     protected $name;

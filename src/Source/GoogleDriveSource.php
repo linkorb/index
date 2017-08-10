@@ -2,7 +2,6 @@
 
 namespace Index\Source;
 
-use Index\Model\SourceInterface;
 use Google_Service_Drive;
 use Google_Client;
 

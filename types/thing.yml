@@ -1,11 +1,11 @@
 ---
-name: thing
-description: A thing
-icon: https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/png/512/document.png
+thing:
+  description: A thing
+  icon: https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/png/512/document.png
 
-properties:
-  name:
-    identifier: true
-    type: string
-  title:
-    type: string
+  properties:
+    name:
+      identifier: true
+      type: string
+    title:
+      type: string

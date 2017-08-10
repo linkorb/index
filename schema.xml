@@ -2,15 +2,10 @@
 <schema>
   <table name="entry">
     <column name="id" type="integer" unsigned="true" autoincrement="true"/>
-    <column name="parent_id" type="integer" notnull="false" />
 
     <!-- unique identifier -->
-    <column name="type" type="string" length="128" />
-    <column name="source" type="string" length="64" />
-    <column name="name" type="string" length="128" />
-
-    <!-- cache -->
-    <column name="properties" type="text" notnull="false" />
+    <column name="fqen" type="string" length="255" />
+    <column name="parent_fqen" type="integer" notnull="false" />
 
     <column name="display_name" type="string" length="128" notnull="false" />
 
@@ -21,13 +16,14 @@
 
     <!-- TODO: make type, source, name a unique key & index -->
     <index name="primary" primary="true" columns="id" />
+    <index name="fqen_index" unique="true" columns="fqen" />
   </table>
 
   <table name="entry_property">
     <column name="id" type="integer" unsigned="true" autoincrement="true"/>
-    <column name="entry_id" type="integer" />
+    <column name="entry_fqen" type="string" length="255" />
     <column name="name" type="string" length="64" />
-    <column name="value" type="text" />
+    <column name="value" type="text" notnull="false" />
 
     <index name="primary" primary="true" columns="id" />
   </table>
