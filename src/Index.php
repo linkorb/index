@@ -13,8 +13,6 @@ use RuntimeException;
 class Index
 {
     protected $store;
-    protected $tnt;
-    protected $tntIndex;
     protected $types = [];
     protected $sources = [];
     protected $renderer;

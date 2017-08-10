@@ -8,6 +8,9 @@ use TeamTNT\TNTSearch\TNTSearch;
 
 class TNTSearcher implements SearcherInterface
 {
+
+    protected $tnt;
+
     public function __construct($storagePath, $filename = 'entry.index')
     {
         $this->tnt = new TNTSearch();
