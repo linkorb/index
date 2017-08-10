@@ -19,7 +19,12 @@ if (getenv('INDEX_DB_NAME')) {
     $store = new \Index\Store\MemoryStore();
 }
 
-$index = new \Index\Index($store);
+if (getenv('INDEX_SEARCH_STORAGE_PATH')) {
+    $searcher = new \Index\Searcher\TNTSearcher(getenv('INDEX_SEARCH_STORAGE_PATH'));
+} else {
+    $searcher = new \Index\Searcher\NullSearcher();
+}
+$index = new \Index\Index($store, $searcher);
 
 // Load configuration such as sources, watches, etc
 $configLoader = new \Index\Loader\ConfigLoader();

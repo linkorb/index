@@ -4,10 +4,11 @@ namespace Index;
 
 use Index\Model\TypeInterface;
 use Index\Model\Entry;
-use Index\Model\TypeProperty;
 use Index\Source\SourceInterface;
+use Index\Store\StoreInterface;
+use Index\Searcher\SearcherInterface;
 use RuntimeException;
-use TeamTNT\TNTSearch\TNTSearch;
+
 
 class Index
 {
@@ -19,24 +20,21 @@ class Index
     protected $renderer;
     protected $searcher;
 
-    public function __construct($store)
+    public function __construct(StoreInterface $store, SearcherInterface $searcher)
     {
         $this->store = $store;
+        $this->searcher = $searcher;
         $store->setIndex($this);
-
-        $this->tnt = new TNTSearch();
-
-        $this->tnt->loadConfig([
-            'storage'   => '/Users/joostfaassen/git/linkorb/index/var/search/'
-        ]);
-        $this->tnt->selectIndex("entry.index");
-        $this->tnt->fuzziness = true;
-        //$this->tntIndex = $this->tnt->createIndex('entry.index');
     }
 
     public function setRenderer(Renderer $renderer)
     {
         $this->renderer = $renderer;
+    }
+
+    public function getSearcher()
+    {
+        return $this->searcher;
     }
 
     public function getRenderer()
@@ -45,27 +43,6 @@ class Index
             throw new RuntimeException("Renderer not defined for this index");
         }
         return $this->renderer;
-    }
-
-    public function updateSearchIndex(Entry $entry)
-    {
-        $tntIndex = $this->tnt->getIndex();
-        $document = [
-            'id' => $entry->getFqen(),
-            'display_name' => $entry->getDisplayName()
-        ];
-        foreach ($entry->getProperties() as $p) {
-            if ($p->getType()->hasFlag(TypeProperty::FLAG_SEARCH)) {
-                $document[(string)$p->getType()->getName()] = (string)$p->getValue();
-            }
-        }
-        $tntIndex->update($entry->getFqen(), $document);
-    }
-
-    public function search($query, $limit = 10)
-    {
-        $res = $this->tnt->search($query, $limit);
-        return $res;
     }
 
     public function getStore()

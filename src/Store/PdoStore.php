@@ -238,7 +238,7 @@ class PdoStore implements StoreInterface
         }
         $propertyDiffs = $this->diffProperties($entryProperties, $storedProperties);
         $this->applyPropertyDiffs($entry, $propertyDiffs);
-        $this->index->updateSearchIndex($entry);
+        $this->index->getSearcher()->updateEntry($entry);
     }
 
     public function applyPropertyDiffs(Entry $entry, $diffs)
